@@ -1,0 +1,33 @@
+<!DOCTYPE html><html lang="en">
+<body>
+	<canvas id="walkCanvas" width="800" height="600"></canvas>
+</body>
+<script>
+	canvas = document.getElementById("walkCanvas");
+	canvasContext = canvas.getContext('2d');
+
+	var x = canvas.width*0.5;
+	var y = canvas.height*0.5;
+	var stepsize = 3;
+
+
+	canvasContext.fillStyle = 'black';
+	canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+	canvasContext.fillStyle = 'white';
+
+	update = function() {
+
+		var stepx = Math.random() * stepsize - stepsize*0.5;
+		var stepy = Math.random() * stepsize - stepsize*0.5;
+		 
+		x += stepx;
+		y += stepy;
+		canvasContext.fillRect(x, y, 1, 1);
+
+		requestAnimationFrame(update);
+	}
+
+	update();
+
+</script>
+</html>  
