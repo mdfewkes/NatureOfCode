@@ -1,0 +1,144 @@
+<!DOCTYPE html><html lang="en">
+<body>
+	<canvas id="walkCanvas" width="800" height="600"></canvas>
+</body>
+<script src="../Chapter 1/PVector.js"></script>
+<script>
+	canvas = document.getElementById("walkCanvas");
+	canvasContext = canvas.getContext('2d');
+
+	class Mover {
+		constructor() {
+			this.pos = new PVector();
+			this.vel = new PVector();
+			this.accel = new PVector();
+			this.size = 20;
+			this.mass = 1;
+		}
+
+		update() {
+			this.vel.add(this.accel);
+			this.pos.add(this.vel);
+
+			//this.edgeBounce();
+			this.accel.zero();
+		}
+
+		draw() {
+			canvasContext.fillStyle = 'grey';
+			canvasContext.beginPath();
+			canvasContext.arc(this.pos.x, this.pos.y, this.size, 0, Math.PI*2, true);
+			canvasContext.fill();
+		}
+
+		applyForce(force) {
+			var forceToApply = PVector.divide(force, this.mass);
+
+			this.accel.add(forceToApply);
+		}
+
+		applyGravity(gravity = 0.1) {
+			var forceToApply = new PVector(0, gravity * this.mass);
+
+			this.applyForce(forceToApply);
+		}
+
+		applyAttraction(other, gravitationalConstant = 1) {
+			var forceToApply = PVector.subtract(other.pos, this.pos);
+			var distance = forceToApply.magnitude();
+			var gravity = (gravitationalConstant * this.mass * other.mass) / (distance*distance);
+
+			forceToApply.normalize();
+			forceToApply.scale(gravity);
+
+			this.applyForce(forceToApply);
+		}
+
+		applyFriction(coefficientOfFriction = 0.01, normalForce = 1) {
+			var frictionMag = coefficientOfFriction * normalForce;
+			var forceToApply = this.vel.get();
+
+			forceToApply.scale(-1);
+			forceToApply.normalize();
+			forceToApply.scale(frictionMag);
+
+			this.applyForce(forceToApply);
+		}
+
+		applyDrag(coefficientOfDrag = 0.1) {
+			var speed = this.vel.magnitude();
+			var dragMagnitude = coefficientOfDrag * speed*speed;
+			var forceToApply = this.vel.get();
+
+			forceToApply.scale(-1);
+			forceToApply.normalize();
+			forceToApply.scale(dragMagnitude);
+
+			this.applyForce(forceToApply);
+		}
+
+		edgeWrap() {
+			if (this.pos.x > canvas.width + this.size) {
+				this.pos.x = -this.size;
+			}
+			if (this.pos.x < -this.size) {
+				this.pos.x = canvas.width + this.size;
+			}
+			if (this.pos.y > canvas.height + this.size) {
+				this.pos.y = -this.size;
+			}
+			if (this.pos.y < -this.size) {
+				this.pos.y = canvas.height + this.size;
+			}
+		}
+
+		edgeBounce() {
+			if (this.pos.x > canvas.width - this.size) {
+				this.pos.x = canvas.width - this.size;
+				this.vel.x *= -1;
+			}
+			if (this.pos.x < this.size) {
+				this.pos.x = this.size;
+				this.vel.x *= -1;
+			}
+			if (this.pos.y > canvas.height - this.size) {
+				this.pos.y = canvas.height - this.size;
+				this.vel.y *= -1;
+			}
+			if (this.pos.y < this.size) {
+				this.pos.y = this.size;
+				this.vel.y *= -1;
+			}
+		}
+	}
+
+	canvasContext.fillStyle = 'black';
+	canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+	canvasContext.fillStyle = 'white';
+
+	var mover = new Mover();
+	mover.pos = new PVector(canvas.width*0.4, canvas.height*0.35);
+	mover.accel = new PVector(1, 0);
+	mover.size = 10;
+
+	var massiveObject = new Mover();
+	massiveObject.pos = new PVector(canvas.width*0.5, canvas.height*0.5);
+	massiveObject.mass = 200;
+
+	update = function() {
+		mover.applyAttraction(massiveObject);
+
+		mover.update();
+
+		canvasContext.fillStyle = 'black';
+		canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+		mover.draw();
+		massiveObject.draw();
+
+		requestAnimationFrame(update);
+	}
+
+	update();
+
+</script>
+</html>  

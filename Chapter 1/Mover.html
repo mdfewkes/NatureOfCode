@@ -1,0 +1,61 @@
+<!DOCTYPE html><html lang="en">
+<body>
+	<canvas id="walkCanvas" width="800" height="600"></canvas>
+</body>
+<script src="PVector.js"></script>
+<script>
+	canvas = document.getElementById("walkCanvas");
+	canvasContext = canvas.getContext('2d');
+
+	class Mover {
+		constructor() {
+			this.pos = new PVector(canvas.width*0.5, canvas.height*0.5);
+			this.vel = new PVector(1, -1);
+			this.accel = new PVector();
+			this.size = 20;
+
+			this.vel.normalize();
+		}
+
+		update() {
+			this.vel.add(this.accel);
+			this.accel.zero();
+			this.pos.add(this.vel);
+			this.edgeWrap();
+		}
+
+		draw() {
+			canvasContext.fillStyle = 'grey';
+			canvasContext.beginPath();
+			canvasContext.arc(this.pos.x, this.pos.y, this.size, 0, Math.PI*2, true);
+			canvasContext.fill();
+		}
+
+		edgeWrap() {
+			if (this.pos.x > canvas.width + this.size) this.pos.x = -this.size;
+			if (this.pos.x < -this.size) this.pos.x = canvas.width + this.size;
+			if (this.pos.y > canvas.height + this.size) this.pos.y = -this.size;
+			if (this.pos.y < -this.size) this.pos.y = canvas.height + this.size;
+		}
+	}
+
+	canvasContext.fillStyle = 'black';
+	canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+	canvasContext.fillStyle = 'white';
+
+	var mover = new Mover();
+
+	update = function() {
+		mover.update();
+
+		canvasContext.fillStyle = 'black';
+		canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+		mover.draw();
+
+		requestAnimationFrame(update);
+	}
+
+	update();
+
+</script>
+</html>  
