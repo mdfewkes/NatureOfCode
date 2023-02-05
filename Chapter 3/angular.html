@@ -1,0 +1,186 @@
+<!DOCTYPE html><html lang="en">
+<body>
+	<canvas id="walkCanvas" width="800" height="600"></canvas>
+</body>
+<script src="../Chapter 1/PVector.js"></script>
+<script>
+	canvas = document.getElementById("walkCanvas");
+	canvasContext = canvas.getContext('2d');
+
+	class Mover {
+		constructor() {
+			this.pos = new PVector();
+			this.vel = new PVector();
+			this.accel = new PVector();
+
+			this.angle = 0;
+			this.aVelocity = 0;
+			this.aAcceloration = 0;
+
+			this.forward = new PVector(0,1);
+
+			this.size = 20;
+			this.mass = 1;
+		}
+
+		update() {
+			this.applyFriction();
+
+			this.vel.limit(20);
+			this.vel.add(this.accel);
+			this.pos.add(this.vel);
+
+			this.aVelocity += this.aAcceloration;
+			this.angle += this.aVelocity;
+
+			this.angle = Math.atan2(this.vel.y , this.vel.x);
+
+			this.forward.x = Math.cos(this.angle);
+			this.forward.y = Math.sin(this.angle);
+
+			this.edgeWrap();
+			this.accel.zero();
+			this.aAcceloration = 0;
+		}
+
+		draw() {
+			canvasContext.fillStyle = 'grey';
+			canvasContext.beginPath();
+			canvasContext.arc(this.pos.x, this.pos.y, this.size, 0, Math.PI*2, true);
+			canvasContext.fill();
+
+			var faceLocation = this.pos.get();
+			faceLocation.add(PVector.multiply(this.forward, this.size));
+			canvasContext.fillStyle = 'red';
+			canvasContext.beginPath();
+			canvasContext.arc(faceLocation.x, faceLocation.y, this.size*0.25, 0, Math.PI*2, true);
+			canvasContext.fill();
+		}
+
+		applyForce(force) {
+			if (this.mass == 0) this.mass = 0.0001
+			var forceToApply = PVector.divide(force, this.mass);
+
+			this.accel.add(forceToApply);
+		}
+
+		applyGravity(gravity = 0.1) {
+			var forceToApply = new PVector(0, gravity * this.mass);
+
+			this.applyForce(forceToApply);
+		}
+
+		applyAttraction(other, gravitationalConstant = 1) {
+			var forceToApply = PVector.subtract(other.pos, this.pos);
+			var distance = forceToApply.magnitude();
+			distance = Math.min(distance, 100);
+			distance = Math.max(distance, 5);
+			var gravity = (gravitationalConstant * this.mass * other.mass) / (distance*distance);
+
+			forceToApply.normalize();
+			forceToApply.scale(gravity);
+
+			this.applyForce(forceToApply);
+		}
+
+		applyFriction(coefficientOfFriction = 0.01, normalForce = 1) {
+			var frictionMag = coefficientOfFriction * normalForce;
+			var forceToApply = this.vel.get();
+
+			forceToApply.scale(-1);
+			forceToApply.normalize();
+			forceToApply.scale(frictionMag);
+
+			this.applyForce(forceToApply);
+		}
+
+		applyDrag(coefficientOfDrag = 0.1) {
+			var speed = this.vel.magnitude();
+			var dragMagnitude = coefficientOfDrag * speed*speed;
+			var forceToApply = this.vel.get();
+
+			forceToApply.scale(-1);
+			forceToApply.normalize();
+			forceToApply.scale(dragMagnitude);
+
+			this.applyForce(forceToApply);
+		}
+
+		edgeWrap() {
+			if (this.pos.x > canvas.width + this.size) {
+				this.pos.x = -this.size;
+			}
+			if (this.pos.x < -this.size) {
+				this.pos.x = canvas.width + this.size;
+			}
+			if (this.pos.y > canvas.height + this.size) {
+				this.pos.y = -this.size;
+			}
+			if (this.pos.y < -this.size) {
+				this.pos.y = canvas.height + this.size;
+			}
+		}
+
+		edgeBounce() {
+			if (this.pos.x > canvas.width - this.size) {
+				this.pos.x = canvas.width - this.size;
+				this.vel.x *= -1;
+			}
+			if (this.pos.x < this.size) {
+				this.pos.x = this.size;
+				this.vel.x *= -1;
+			}
+			if (this.pos.y > canvas.height - this.size) {
+				this.pos.y = canvas.height - this.size;
+				this.vel.y *= -1;
+			}
+			if (this.pos.y < this.size) {
+				this.pos.y = this.size;
+				this.vel.y *= -1;
+			}
+		}
+	}
+
+	canvasContext.fillStyle = 'black';
+	canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+	canvasContext.fillStyle = 'white';
+
+	var movers = [];
+	var amount = Math.ceil(Math.random()*50);
+	for (var i = 0; i < amount; i++) {
+		var mover = new Mover();
+		mover.pos = new PVector(Math.random()*canvas.width, Math.random()*canvas.height);
+		mover.accel = new PVector(Math.random()*2 - 1, Math.random()*2 - 1);
+		mover.accel.normalize();
+		mover.size = Math.random()*10 + 5;
+		mover.mass = mover.size * 10;
+
+		movers.push(mover);
+	}
+
+	update = function() {
+		for (var i = 0; i < movers.length; i++) {
+			for (var j = 0; j < movers.length; j++) {
+				if (i == j) continue;
+				movers[i].applyAttraction(movers[j]);
+			}
+		}
+
+		for (var i = 0; i < movers.length; i++) {
+			movers[i].update();
+		}
+
+		canvasContext.fillStyle = '#00000040';
+		canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+
+		for (var i = 0; i < movers.length; i++) {
+			movers[i].draw();
+		}
+
+		requestAnimationFrame(update);
+	}
+
+	update();
+
+</script>
+</html>  

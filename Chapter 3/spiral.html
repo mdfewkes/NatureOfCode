@@ -1,0 +1,42 @@
+<!DOCTYPE html><html lang="en">
+<body>
+	<canvas id="walkCanvas" width="800" height="800"></canvas>
+</body>
+<script src="../Chapter 1/PVector.js"></script>
+<script>
+	canvas = document.getElementById("walkCanvas");
+	canvasContext = canvas.getContext('2d');
+
+	var r = 0.5;
+	var theta = 0;
+	var rInc = 0.1;
+	var thetaInc = 0.04;
+	var speed = 2;
+
+	var leadColor = 'black';
+	var leadSize = 8;
+	var followColor = 'white';
+	var followSize = 12;
+
+	update = function() {
+		var x = r * Math.cos(theta);
+		var y = r * Math.sin(theta);
+		canvasContext.fillStyle = followColor;
+		canvasContext.beginPath();
+		canvasContext.arc(x + canvas.width*0.5, y + canvas.height*0.5, followSize, 0, Math.PI*2, true);
+		canvasContext.fill();
+		canvasContext.fillStyle = leadColor;
+		canvasContext.beginPath();
+		canvasContext.arc(-x + canvas.width*0.5, -y + canvas.height*0.5, leadSize, 0, Math.PI*2, true);
+		canvasContext.fill();
+
+		r += rInc * speed;
+		theta += thetaInc * speed;
+
+		requestAnimationFrame(update);
+	}
+
+	update();
+
+</script>
+</html>  

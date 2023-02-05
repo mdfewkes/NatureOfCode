@@ -1,0 +1,34 @@
+<!DOCTYPE html><html lang="en">
+<body>
+	<canvas id="walkCanvas" width="800" height="600"></canvas>
+</body>
+<script src="../Chapter 1/PVector.js"></script>
+<script>
+	canvas = document.getElementById("walkCanvas");
+	canvasContext = canvas.getContext('2d');
+
+	var speed = 1;
+	var delta = 0;
+	var amplitude = 100;
+
+	update = function() {
+		canvasContext.fillStyle = '#FFFFFF50';
+		canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+
+		var x = Math.cos(delta) * amplitude + canvas.width*0.5;
+		var y = canvas.height*0.5;
+
+		canvasContext.fillStyle = 'black';
+		canvasContext.beginPath();
+		canvasContext.arc(x, y, 10, 0, Math.PI*2, true);
+		canvasContext.fill();
+
+		delta += 0.1 * speed;
+
+		requestAnimationFrame(update);
+	}
+
+	update();
+
+</script>
+</html>  
